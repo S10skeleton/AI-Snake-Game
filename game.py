@@ -2,6 +2,11 @@ import pygame
 import random
 from enum import Enum
 from collections import namedtuple
+import numpy as np
+import logging
+
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+
 
 pygame.init()
 font = pygame.font.Font('arial.ttf', 25)
@@ -38,6 +43,8 @@ SPEED = 20
 class SnakeGameAI:
     
     def __init__(self, w=640, h=480):
+        logging.info('Initializing the game...')
+
         self.w = w
         self.h = h
         # init display
@@ -46,15 +53,17 @@ class SnakeGameAI:
         self.clock = pygame.time.Clock()
         self.reset()
 
-    def reset(self):    
+    def reset(self):
         # init game state
+        logging.debug('Resetting the game...')
+
         self.direction = Direction.RIGHT
-        
+
         self.head = Point(self.w/2, self.h/2)
-        self.snake = [self.head, 
-        Point(self.head.x-BLOCK_SIZE, self.head.y),
-        Point(self.head.x-(2*BLOCK_SIZE), self.head.y)]
-        
+        self.snake = [self.head,
+                      Point(self.head.x-BLOCK_SIZE, self.head.y),
+                      Point(self.head.x-(2*BLOCK_SIZE), self.head.y)]
+
         self.score = 0
         self.food = None
         self._place_food()
@@ -69,6 +78,8 @@ class SnakeGameAI:
             self._place_food()
         
     def play_step(self, action):
+        logging.debug('Starting a new game step...')
+
         self.frame_iteration += 1
         # 1. collect user input
         for event in pygame.event.get():
@@ -85,6 +96,7 @@ class SnakeGameAI:
         reward = 0
         game_over = False
         if self.is_collision() or self.frame_iteration > 100*len(self.snake):
+            logging.warning('Collision detected! Ending game.')
             game_over = True
             reward = -10
             return reward, game_over, self.score
@@ -92,6 +104,7 @@ class SnakeGameAI:
         # 4. place new food or just move
         if self.head == self.food:
             self.score += 1
+            logging.info(f'Snake ate food. Score: {self.score}')
             reward = 10
             self._place_food()
         else:
